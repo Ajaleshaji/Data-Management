@@ -87,7 +87,7 @@ function DepartmentSectionPage() {
 
   return (
     <div style={container}>
-      <h1>Department Section</h1>
+      <h1>Admin Department Section</h1>
 
       <p><strong>Admin ID:</strong> {adminId}</p>
       <p><strong>Department:</strong> {department}</p>

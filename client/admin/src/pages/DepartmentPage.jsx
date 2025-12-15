@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function DepartmentPage() {
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get adminId from query params
   const queryParams = new URLSearchParams(location.search);
   const adminId = queryParams.get("adminId");
 
@@ -12,104 +14,114 @@ function DepartmentPage() {
   const [departments, setDepartments] = useState([]);
   const [message, setMessage] = useState("");
 
+  /* ---------------- FETCH DEPARTMENTS ---------------- */
   useEffect(() => {
     fetchDepartments();
   }, []);
 
-  /* ---------------- FETCH ---------------- */
   const fetchDepartments = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/departments");
       const data = await res.json();
       setDepartments(data.departments || []);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Fetch error:", error);
     }
   };
 
-  /* ---------------- CREATE ---------------- */
+  /* ---------------- CREATE DEPARTMENT + SECTION ---------------- */
   const handleAddDepartment = async (e) => {
     e.preventDefault();
 
     if (!departmentName || !section) {
-      setMessage("Please enter both department and section");
+      setMessage("Please enter Department and Section");
       return;
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/departments/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          departmentName,
-          sections: [section],
-        }),
-      });
+      const res = await fetch(
+        "http://localhost:5000/api/departments/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            departmentName,
+            sections: [section],
+          }),
+        }
+      );
 
       const data = await res.json();
 
-      if (res.ok) {
-        setMessage("Department & Section added successfully!");
-        setDepartmentName("");
-        setSection("");
-        fetchDepartments();
-      } else {
+      if (!res.ok) {
         setMessage(data.msg || "Error creating department");
+        return;
       }
-    } catch (err) {
-      console.error(err);
+
+      setMessage("Department & Section created successfully");
+      setDepartmentName("");
+      setSection("");
+      fetchDepartments();
+    } catch (error) {
+      console.error("Create error:", error);
       setMessage("Server error");
     }
   };
 
-  /* ---------------- NAVIGATION ---------------- */
-  const handleSectionClick = (deptName, secName) => {
-    navigate(`/department-section/${deptName}/${secName}?adminId=${adminId}`);
+  /* ---------------- NAVIGATE TO SECTION PAGE ---------------- */
+  const handleSectionClick = (dept, sec) => {
+    navigate(`/department-section/${dept}/${sec}?adminId=${adminId}`);
   };
 
   return (
     <div style={container}>
-      <h1>Department Management</h1>
-      <p><strong>Admin ID:</strong> {adminId}</p>
+      <h1>Admin Department Management</h1>
+      <p>
+        <strong>Admin ID:</strong> {adminId}
+      </p>
 
       {/* -------- ADD FORM -------- */}
-      <h2>Add Department & Section</h2>
+      <h3>Add Department & Section</h3>
       <form onSubmit={handleAddDepartment}>
         <input
           type="text"
-          placeholder="Department Name (CSE)"
+          placeholder="Department Name (e.g. CSE)"
           value={departmentName}
           onChange={(e) => setDepartmentName(e.target.value)}
-          style={inputStyle}
+          style={input}
         />
 
         <input
           type="text"
-          placeholder="Section (A)"
+          placeholder="Section (e.g. A)"
           value={section}
           onChange={(e) => setSection(e.target.value)}
-          style={inputStyle}
+          style={input}
         />
 
-        <button type="submit" style={btnStyle}>Add</button>
+        <button type="submit" style={button}>
+          Add
+        </button>
       </form>
 
       {message && <p style={{ color: "green" }}>{message}</p>}
 
-      {/* -------- SEPARATE SECTION CONTAINERS -------- */}
-      <h2>Departments & Sections</h2>
+      {/* -------- SECTION CONTAINERS -------- */}
+      <h3>Departments & Sections</h3>
 
       {departments.length === 0 ? (
-        <p>No departments yet</p>
+        <p>No departments found</p>
       ) : (
-        departments.flatMap((dept) =>
-          dept.sections.map((sec, idx) => (
+        departments.map((dept, dIdx) =>
+          dept.sections.map((sec, sIdx) => (
             <div
-              key={`${dept.departmentName}-${idx}`}
+              key={`${dIdx}-${sIdx}`}
               style={sectionCard}
-              onClick={() => handleSectionClick(dept.departmentName, sec)}
+              onClick={() =>
+                handleSectionClick(dept.departmentName, sec)
+              }
             >
-              <h3>{dept.departmentName}</h3>
+              <h4>{dept.departmentName}</h4>
               <p>Section: {sec}</p>
             </div>
           ))
@@ -122,31 +134,31 @@ function DepartmentPage() {
 /* ---------------- STYLES ---------------- */
 
 const container = {
-  padding: "20px",
   maxWidth: "600px",
   margin: "50px auto",
+  padding: "20px",
 };
 
-const inputStyle = {
-  padding: "10px",
-  fontSize: "16px",
+const input = {
   width: "100%",
+  padding: "10px",
   marginBottom: "10px",
+  fontSize: "16px",
 };
 
-const btnStyle = {
+const button = {
   padding: "10px 20px",
   fontSize: "16px",
   backgroundColor: "#4CAF50",
-  color: "white",
+  color: "#fff",
   border: "none",
   cursor: "pointer",
 };
 
 const sectionCard = {
   border: "1px solid #4CAF50",
-  borderRadius: "8px",
   padding: "15px",
+  borderRadius: "8px",
   marginBottom: "12px",
   backgroundColor: "#f9fff9",
   cursor: "pointer",
