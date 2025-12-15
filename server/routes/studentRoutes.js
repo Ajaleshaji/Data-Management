@@ -44,5 +44,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/login", async (req, res) => {
+  try {
+    const { rollNumber, password } = req.body;
+
+    const student = await Student.findOne({ rollNumber, password });
+    if (!student) {
+      return res.status(400).json({ msg: "Invalid Roll Number or Password" });
+    }
+
+    res.json({ msg: "Login successful", student });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 
 export default router;
