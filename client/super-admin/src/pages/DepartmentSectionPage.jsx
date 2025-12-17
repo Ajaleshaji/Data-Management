@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 
 function DepartmentSectionPage() {
   const { department, section } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+
   const queryParams = new URLSearchParams(location.search);
   const adminId = queryParams.get("adminId");
 
@@ -12,7 +14,7 @@ function DepartmentSectionPage() {
   const [students, setStudents] = useState([]);
   const [message, setMessage] = useState("");
 
-  /* ---------------- FETCH STUDENTS ON LOAD ---------------- */
+  /* ---------------- FETCH STUDENTS ---------------- */
   useEffect(() => {
     fetchStudents();
   }, []);
@@ -29,78 +31,79 @@ function DepartmentSectionPage() {
         setMessage(data.msg || "Error fetching students");
       }
     } catch (err) {
-      console.error("Fetch error:", err);
       setMessage("Server error");
     }
   };
 
-  /* -------- GENERATE STUDENTS -------- */
+  /* ---------------- GENERATE STUDENTS ---------------- */
   const generateStudents = async () => {
     if (!startRoll) {
-      setMessage("Please enter a start roll number");
+      setMessage("Please enter start roll number");
       return;
     }
 
-    const prefix = startRoll.slice(0, -3); // e.g., 23CS
+    const prefix = startRoll.slice(0, -3);
     const startNum = parseInt(startRoll.slice(-3));
-    const endNum = endRoll ? parseInt(endRoll.slice(-3)) : startNum; // single student if endRoll empty
+    const endNum = endRoll ? parseInt(endRoll.slice(-3)) : startNum;
 
     if (startNum > endNum) {
-      setMessage("Invalid roll number range");
+      setMessage("Invalid roll range");
       return;
     }
 
     const generated = [];
 
     for (let i = startNum; i <= endNum; i++) {
-      const rollNo = prefix + String(i).padStart(3, "0");
-
       generated.push({
-        rollNumber: rollNo,
-        password: "student@123", // Stored in DB but not shown
+        rollNumber: prefix + String(i).padStart(3, "0"),
+        password: "student@123",
         department,
         section,
       });
     }
 
-    /* -------- SAVE TO DATABASE -------- */
     try {
       const res = await fetch("http://localhost:5000/api/students/create-many", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ students: generated }),
       });
-      const data = await res.json();
+
       if (res.ok) {
-        setMessage(`${generated.length} student(s) generated and saved!`);
+        setMessage("Students generated successfully");
         setStartRoll("");
         setEndRoll("");
-        fetchStudents(); // Refresh the list after saving
+        fetchStudents();
       } else {
-        setMessage(data.msg || "Error saving students");
+        setMessage("Error saving students");
       }
-    } catch (err) {
-      console.error("Save error:", err);
+    } catch {
       setMessage("Server error");
     }
   };
 
+  /* ---------------- OPEN STUDENT DASHBOARD ---------------- */
+  const openStudentDashboard = (rollNumber) => {
+    navigate(`/student-dashboard/${rollNumber}`, {
+      state: { rollNumber, department, section },
+    });
+  };
+
   return (
     <div style={container}>
-      <h1>Department Section</h1>
+      <h2>Department Section</h2>
 
-      <p><strong>Admin ID:</strong> {adminId}</p>
+      <p><strong>Admin:</strong> {adminId}</p>
       <p><strong>Department:</strong> {department}</p>
       <p><strong>Section:</strong> {section}</p>
 
       <hr />
 
-      {/* ---------- GENERATE FORM ---------- */}
-      <h3>Create Student(s)</h3>
+      <h3>Create Students</h3>
 
       <input
         type="text"
-        placeholder="Start Roll (e.g., 23CS001)"
+        placeholder="Start Roll (23CS001)"
         value={startRoll}
         onChange={(e) => setStartRoll(e.target.value)}
         style={input}
@@ -108,7 +111,7 @@ function DepartmentSectionPage() {
 
       <input
         type="text"
-        placeholder="End Roll (optional, e.g., 23CS060)"
+        placeholder="End Roll (optional)"
         value={endRoll}
         onChange={(e) => setEndRoll(e.target.value)}
         style={input}
@@ -120,26 +123,32 @@ function DepartmentSectionPage() {
 
       {message && <p style={{ color: "green" }}>{message}</p>}
 
-      {/* ---------- STUDENT LIST ---------- */}
-      {students.length > 0 && (
-        <>
-          <h3>Students in this Section</h3>
-          {students.map((stu, idx) => (
-            <div key={idx} style={studentBox}>
-              <p><strong>Roll No:</strong> {stu.rollNumber}</p>
-              {/* Password hidden */}
-            </div>
-          ))}
-        </>
-      )}
+      <hr />
+
+      <h3>Students List</h3>
+
+      {students.map((stu, idx) => (
+        <div key={idx} style={studentBox}>
+          <p>
+            <strong>Roll No:</strong>{" "}
+            <span
+              style={rollLink}
+              onClick={() => openStudentDashboard(stu.rollNumber)}
+            >
+              {stu.rollNumber}
+            </span>
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
 
-/* ---------- STYLES ---------- */
+/* ---------------- STYLES ---------------- */
 const container = { maxWidth: "600px", margin: "40px auto", padding: "20px" };
-const input = { width: "100%", padding: "10px", marginBottom: "10px", fontSize: "16px" };
-const button = { padding: "10px 20px", fontSize: "16px", backgroundColor: "#4CAF50", color: "#fff", border: "none", cursor: "pointer" };
-const studentBox = { border: "1px solid #ccc", borderRadius: "5px", padding: "10px", marginBottom: "8px", backgroundColor: "#f9f9f9" };
+const input = { width: "100%", padding: "10px", marginBottom: "10px" };
+const button = { padding: "10px 20px", background: "#4CAF50", color: "#fff", border: "none", cursor: "pointer" };
+const studentBox = { border: "1px solid #ccc", padding: "10px", marginBottom: "8px" };
+const rollLink = { color: "#1976d2", cursor: "pointer", textDecoration: "underline" };
 
 export default DepartmentSectionPage;

@@ -5,6 +5,7 @@ import cors from "cors";
 import superAdminRoutes from "./routes/superAdminRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
+import studentFileRoutes from "./routes/studentFileRoutes.js";
 dotenv.config();
 const app = express();
 
@@ -41,6 +42,9 @@ mongoose
 app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/student-files", studentFileRoutes);
+app.use("/uploads", express.static("uploads"));
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
