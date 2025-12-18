@@ -1,50 +1,55 @@
+// 1️⃣ Load environment variables first
+import dotenv from "dotenv";
+dotenv.config();  // MUST be first
+
+// 2️⃣ Import cloudinary
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+export default cloudinary;
+
+// 3️⃣ Rest of imports
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import cors from "cors";
+
 import superAdminRoutes from "./routes/superAdminRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import studentFileRoutes from "./routes/studentFileRoutes.js";
-dotenv.config();
+
+// 4️⃣ Express setup
 const app = express();
 
-// Allowed frontend origins
-const allowedOrigins = [
-  "http://localhost:5173",  // default Vite port
-  "http://localhost:5174",  // SuperAdmin frontend
-  "http://localhost:5175",  // Admin frontend
-  "http://localhost:5176",  // Student frontend (optional)
-];
-
-// Enable CORS for multiple origins
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true); // allow request
-    } else {
-      callback(new Error("Not allowed by CORS")); // block request
-    }
-  },
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:5176"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
 
 app.use(express.json());
 
-// MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI)
+// 5️⃣ MongoDB
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
-// Routes
+// 6️⃣ Routes
 app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/student-files", studentFileRoutes);
-app.use("/uploads", express.static("uploads"));
 
-
+// 7️⃣ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
