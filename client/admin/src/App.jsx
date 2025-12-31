@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AdminLogin from "../../admin/src/pages/AdminLogin";
 import DepartmentPage from "./pages/DepartmentPage";
 import DepartmentSectionPage from "./pages/DepartmentSectionPage";
+import StudentDashboard from "./pages/StudentDashboard";
 function App() {
   return (
     <BrowserRouter>
@@ -9,6 +10,8 @@ function App() {
         <Route path="/department/:department" element={<DepartmentPage />} />
         <Route path="/" element={<AdminLogin />} />
         <Route path="/department-section/:department/:section" element={<DepartmentSectionPage />} />
+        <Route path="/admin/student/:rollNumber" element={<StudentDashboard />}
+/>
       </Routes>
     </BrowserRouter>
   );

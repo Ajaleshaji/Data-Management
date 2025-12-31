@@ -54,16 +54,25 @@ router.get("/:rollNumber", async (req, res) => {
 router.delete("/delete/:id", async (req, res) => {
   try {
     const file = await StudentFile.findById(req.params.id);
-    if (!file) return res.status(404).json({ msg: "File not found" });
+    if (!file) {
+      return res.status(404).json({ msg: "File not found" });
+    }
 
-    await cloudinary.uploader.destroy(file.publicId);
+    // Old records safety
+    if (file.publicId) {
+      await cloudinary.uploader.destroy(file.publicId, {
+        resource_type: "raw", // IMPORTANT for pdf, docx
+      });
+    }
+
     await StudentFile.findByIdAndDelete(req.params.id);
 
     res.json({ msg: "File deleted successfully" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Delete failed" });
+    console.error("DELETE ERROR:", err);
+    res.status(500).json({ msg: "Delete failed", error: err.message });
   }
 });
+
 
 export default router;

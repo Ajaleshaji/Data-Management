@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 
 function DepartmentSectionPage() {
   const { department, section } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+
   const queryParams = new URLSearchParams(location.search);
   const adminId = queryParams.get("adminId");
 
@@ -12,7 +14,6 @@ function DepartmentSectionPage() {
   const [students, setStudents] = useState([]);
   const [message, setMessage] = useState("");
 
-  /* ---------------- FETCH STUDENTS ON LOAD ---------------- */
   useEffect(() => {
     fetchStudents();
   }, []);
@@ -29,21 +30,19 @@ function DepartmentSectionPage() {
         setMessage(data.msg || "Error fetching students");
       }
     } catch (err) {
-      console.error("Fetch error:", err);
       setMessage("Server error");
     }
   };
 
-  /* -------- GENERATE STUDENTS -------- */
   const generateStudents = async () => {
     if (!startRoll) {
       setMessage("Please enter a start roll number");
       return;
     }
 
-    const prefix = startRoll.slice(0, -3); // e.g., 23CS
+    const prefix = startRoll.slice(0, -3);
     const startNum = parseInt(startRoll.slice(-3));
-    const endNum = endRoll ? parseInt(endRoll.slice(-3)) : startNum; // single student if endRoll empty
+    const endNum = endRoll ? parseInt(endRoll.slice(-3)) : startNum;
 
     if (startNum > endNum) {
       setMessage("Invalid roll number range");
@@ -53,34 +52,35 @@ function DepartmentSectionPage() {
     const generated = [];
 
     for (let i = startNum; i <= endNum; i++) {
-      const rollNo = prefix + String(i).padStart(3, "0");
-
       generated.push({
-        rollNumber: rollNo,
-        password: "student@123", // Stored in DB but not shown
+        rollNumber: prefix + String(i).padStart(3, "0"),
+        password: "student@123",
         department,
         section,
       });
     }
 
-    /* -------- SAVE TO DATABASE -------- */
     try {
-      const res = await fetch("http://localhost:5000/api/students/create-many", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ students: generated }),
-      });
+      const res = await fetch(
+        "http://localhost:5000/api/students/create-many",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ students: generated }),
+        }
+      );
+
       const data = await res.json();
+
       if (res.ok) {
-        setMessage(`${generated.length} student(s) generated and saved!`);
+        setMessage(`${generated.length} student(s) created successfully`);
         setStartRoll("");
         setEndRoll("");
-        fetchStudents(); // Refresh the list after saving
+        fetchStudents();
       } else {
         setMessage(data.msg || "Error saving students");
       }
     } catch (err) {
-      console.error("Save error:", err);
       setMessage("Server error");
     }
   };
@@ -95,7 +95,6 @@ function DepartmentSectionPage() {
 
       <hr />
 
-      {/* ---------- GENERATE FORM ---------- */}
       <h3>Create Student(s)</h3>
 
       <input
@@ -108,7 +107,7 @@ function DepartmentSectionPage() {
 
       <input
         type="text"
-        placeholder="End Roll (optional, e.g., 23CS060)"
+        placeholder="End Roll (optional)"
         value={endRoll}
         onChange={(e) => setEndRoll(e.target.value)}
         style={input}
@@ -120,26 +119,36 @@ function DepartmentSectionPage() {
 
       {message && <p style={{ color: "green" }}>{message}</p>}
 
-      {/* ---------- STUDENT LIST ---------- */}
-      {students.length > 0 && (
-        <>
-          <h3>Students in this Section</h3>
-          {students.map((stu, idx) => (
-            <div key={idx} style={studentBox}>
-              <p><strong>Roll No:</strong> {stu.rollNumber}</p>
-              {/* Password hidden */}
-            </div>
-          ))}
-        </>
-      )}
+      <hr />
+
+      <h3>Students in this Section</h3>
+
+      {students.map((stu) => (
+        <div
+          key={stu._id}
+          style={studentBox}
+          onClick={() =>
+            navigate(`/admin/student/${stu.rollNumber}`)
+          }
+        >
+          <strong>Roll No:</strong> {stu.rollNumber}
+        </div>
+      ))}
     </div>
   );
 }
 
 /* ---------- STYLES ---------- */
 const container = { maxWidth: "600px", margin: "40px auto", padding: "20px" };
-const input = { width: "100%", padding: "10px", marginBottom: "10px", fontSize: "16px" };
-const button = { padding: "10px 20px", fontSize: "16px", backgroundColor: "#4CAF50", color: "#fff", border: "none", cursor: "pointer" };
-const studentBox = { border: "1px solid #ccc", borderRadius: "5px", padding: "10px", marginBottom: "8px", backgroundColor: "#f9f9f9" };
+const input = { width: "100%", padding: "10px", marginBottom: "10px" };
+const button = { padding: "10px 20px", backgroundColor: "#4CAF50", color: "#fff", border: "none", cursor: "pointer" };
+const studentBox = {
+  border: "1px solid #ccc",
+  borderRadius: "5px",
+  padding: "10px",
+  marginBottom: "8px",
+  backgroundColor: "#f9f9f9",
+  cursor: "pointer"
+};
 
 export default DepartmentSectionPage;

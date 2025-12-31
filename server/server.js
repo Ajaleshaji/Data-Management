@@ -1,8 +1,5 @@
-// 1️⃣ Load environment variables first
 import dotenv from "dotenv";
-dotenv.config();  // MUST be first
-
-// 2️⃣ Import cloudinary
+dotenv.config();  
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -13,7 +10,6 @@ cloudinary.config({
 
 export default cloudinary;
 
-// 3️⃣ Rest of imports
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -23,7 +19,6 @@ import departmentRoutes from "./routes/departmentRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import studentFileRoutes from "./routes/studentFileRoutes.js";
 
-// 4️⃣ Express setup
 const app = express();
 
 app.use(cors({
@@ -39,17 +34,14 @@ app.use(cors({
 
 app.use(express.json());
 
-// 5️⃣ MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
-// 6️⃣ Routes
 app.use("/api/superadmin", superAdminRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/student-files", studentFileRoutes);
 
-// 7️⃣ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
