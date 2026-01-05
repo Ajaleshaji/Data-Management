@@ -7,54 +7,140 @@ function Dashboard() {
   const queryParams = new URLSearchParams(location.search);
   const rollNumber = queryParams.get("rollNumber");
 
-  const [student, setStudent] = useState(null);
-  const [message, setMessage] = useState("");
+  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch student details from backend
-    const fetchStudent = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/api/students?rollNumber=${rollNumber}`);
-        const data = await res.json();
-        if (res.ok) {
-          setStudent(data.student);
-        } else {
-          setMessage(data.msg || "Student not found");
-        }
-      } catch (err) {
-        console.error(err);
-        setMessage("Server error");
-      }
-    };
-
     if (rollNumber) {
-      fetchStudent();
+      fetchFiles();
     }
   }, [rollNumber]);
+
+  /* ---------- FETCH FILES ---------- */
+  const fetchFiles = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/student-files/${rollNumber}`
+      );
+      const data = await res.json();
+      setFiles(data);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    }
+  };
+
+  /* ---------- UPLOAD FILE ---------- */
+  const uploadFile = async () => {
+    if (!file) {
+      alert("Please select a file first");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("rollNumber", rollNumber);
+
+    try {
+      setLoading(true);
+      const res = await fetch(
+        "http://localhost:5000/api/student-files/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+
+      setFile(null);
+      fetchFiles();
+    } catch (err) {
+      alert("File upload failed");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ---------- DELETE FILE ---------- */
+  const deleteFile = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this file?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await fetch(
+        `http://localhost:5000/api/student-files/delete/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      fetchFiles();
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
 
   if (!rollNumber) {
     return <p>Please login first.</p>;
   }
 
   return (
-    <div style={container}>
-      <h1>Student Dashboard</h1>
-      {message && <p style={{ color: "red" }}>{message}</p>}
-      {student ? (
-        <div style={infoBox}>
-          <p><strong>Roll Number:</strong> {student.rollNumber}</p>
-          <p><strong>Department:</strong> {student.department}</p>
-          <p><strong>Section:</strong> {student.section}</p>
+    <div style={{ maxWidth: "600px", margin: "40px auto" }}>
+      <h2>Student Dashboard</h2>
+
+      <p>
+        <strong>Roll Number:</strong> {rollNumber}
+      </p>
+
+      <hr />
+
+      {/* ---------- UPLOAD SECTION ---------- */}
+      <input
+        type="file"
+        onChange={(e) => setFile(e.target.files[0])}
+      />
+      <br /><br />
+
+      <button onClick={uploadFile} disabled={loading}>
+        {loading ? "Uploading..." : "Upload File"}
+      </button>
+
+      <hr />
+
+      {/* ---------- FILE LIST ---------- */}
+      <h3>Uploaded Files</h3>
+
+      {files.length === 0 && <p>No files uploaded</p>}
+
+      {files.map((f) => (
+        <div
+          key={f._id}
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "10px",
+          }}
+        >
+          <a href={f.fileUrl} target="_blank" rel="noreferrer">
+            {f.fileName}
+          </a>
+
+          <button
+            onClick={() => deleteFile(f._id)}
+            style={{ color: "red" }}
+          >
+            Delete
+          </button>
         </div>
-      ) : (
-        <p>Loading student details...</p>
-      )}
+      ))}
     </div>
   );
 }
-
-/* ---------- STYLES ---------- */
-const container = { maxWidth: "600px", margin: "50px auto", padding: "20px" };
-const infoBox = { border: "1px solid #ccc", borderRadius: "5px", padding: "15px", backgroundColor: "#f9f9f9" };
 
 export default Dashboard;
