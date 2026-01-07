@@ -5,14 +5,18 @@ function AdminLogin() {
   const [adminId, setAdminId] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
     if (!adminId || !password) {
       setMessage("Please enter Admin ID and Password");
+      setLoading(false);
       return;
     }
 
@@ -33,74 +37,90 @@ function AdminLogin() {
         return;
       }
 
-      // ✅ Store admin info locally (Admin project only)
       localStorage.setItem("adminId", data.adminId);
       localStorage.setItem("department", data.department);
 
-      // ✅ Redirect INSIDE ADMIN PROJECT
       navigate(`/department/${data.department}?adminId=${data.adminId}`);
     } catch (error) {
       console.error("Login error:", error);
-      setMessage("Server error");
+      setMessage("Server error. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={container}>
-      <h2>Admin Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
+        
+        {/* Header */}
+        <div className="text-center">
+          <h2 className="mt-2 text-3xl font-extrabold text-[#0D9488]">
+            Admin Login
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Enter your credentials to manage your department
+          </p>
+        </div>
 
-      <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Admin ID"
-          value={adminId}
-          onChange={(e) => setAdminId(e.target.value)}
-          style={input}
-        />
+        {/* Form */}
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div className="mb-4">
+              <label htmlFor="admin-id" className="sr-only">Admin ID</label>
+              <input
+                id="admin-id"
+                type="text"
+                required
+                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-[#0D9488] focus:border-[#0D9488] focus:z-10 sm:text-sm transition-all"
+                placeholder="Admin ID"
+                value={adminId}
+                onChange={(e) => setAdminId(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">Password</label>
+              <input
+                id="password"
+                type="password"
+                required
+                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-[#0D9488] focus:border-[#0D9488] focus:z-10 sm:text-sm transition-all"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={input}
-        />
+          {/* Error/Feedback Message */}
+          {message && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-3 mt-2">
+              <p className="text-sm text-red-700">{message}</p>
+            </div>
+          )}
 
-        <button type="submit" style={button}>
-          Login
-        </button>
-      </form>
+          {/* Submit Button */}
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-[#0D9488] hover:bg-[#0b7a6f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D9488] transition-colors ${
+                loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
+            >
+              {loading ? "Verifying..." : "Login"}
+            </button>
+          </div>
+        </form>
 
-      {message && <p style={{ color: "red" }}>{message}</p>}
+        <div className="text-center">
+          <p className="text-xs text-gray-400 uppercase tracking-widest">
+            Departmental Portal Access
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
-
-/* ---------- styles ---------- */
-
-const container = {
-  maxWidth: "400px",
-  margin: "80px auto",
-  padding: "25px",
-  border: "1px solid #ccc",
-  borderRadius: "8px",
-};
-
-const input = {
-  width: "100%",
-  padding: "10px",
-  fontSize: "16px",
-  marginBottom: "15px",
-};
-
-const button = {
-  width: "100%",
-  padding: "10px",
-  fontSize: "16px",
-  backgroundColor: "#4CAF50",
-  color: "#fff",
-  border: "none",
-  cursor: "pointer",
-};
 
 export default AdminLogin;
