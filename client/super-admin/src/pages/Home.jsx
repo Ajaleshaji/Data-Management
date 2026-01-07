@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
+  // Constant ID
   const SUPER_ADMIN_ID = "superadmin";
+  
+  // If you store the actual name in localStorage during login, we fetch it here
+  const displayName = localStorage.getItem("userName") || SUPER_ADMIN_ID;
+
   const navigate = useNavigate();
 
   const [adminId, setAdminId] = useState("");
@@ -63,14 +68,27 @@ function Home() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Optional: clear session
+    navigate("/");
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Navigation Header - Fixed Full Width */}
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+      {/* Navigation Header */}
       <nav className="bg-[#0D9488] text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-          <h1 className="text-xl font-bold tracking-tight">Super Admin Portal</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold tracking-tight">Portal</h1>
+            <span className="h-6 w-[1px] bg-white/20 hidden sm:block"></span>
+            <div className="hidden sm:flex flex-col">
+              <span className="text-[10px] uppercase opacity-80 leading-none">Super Admin</span>
+              <span className="text-sm font-medium tracking-wide">{displayName}</span>
+            </div>
+          </div>
+          
           <button 
-            onClick={() => navigate("/")}
+            onClick={handleLogout}
             className="text-sm bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2 rounded-md transition-all active:scale-95"
           >
             Logout
@@ -78,15 +96,23 @@ function Home() {
         </div>
       </nav>
 
-      {/* Main Content Area - Increased Width for Better Balance */}
+      {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-6 py-10">
+        {/* Welcome Section */}
+        <div className="mb-10">
+            <h2 className="text-3xl font-extrabold text-gray-800">
+                Welcome back, <span className="text-[#0D9488]">{displayName}</span>
+            </h2>
+            <p className="text-gray-500 mt-1">System Overview & Department Management</p>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-10 items-start">
           
-          {/* Sidebar: Create Admin Form - Fixed Width on Large Screens */}
+          {/* Sidebar: Create Admin Form */}
           <div className="w-full lg:w-[380px] shrink-0 sticky lg:top-24">
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                Register Admin
+                Register New Admin
               </h2>
               <div className="space-y-5">
                 <div>
@@ -137,14 +163,11 @@ function Home() {
             </div>
           </div>
 
-          {/* Main Content: Department List - Expanded Width */}
+          {/* Main Content: Department List */}
           <div className="flex-1 w-full">
-            <div className="flex justify-between items-end mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800">Departments</h2>
-                <p className="text-gray-500 text-sm">Manage and view active departments</p>
-              </div>
-              <span className="bg-[#0D9488]/10 text-[#0D9488] text-sm px-4 py-1.5 rounded-full font-bold">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-800">Active Departments</h2>
+              <span className="bg-[#0D9488]/10 text-[#0D9488] text-sm px-4 py-1 rounded-full font-bold">
                 {admins.length} Total
               </span>
             </div>
@@ -167,6 +190,7 @@ function Home() {
                         <h3 className="text-lg font-bold text-gray-800 group-hover:text-[#0D9488] leading-tight">
                           {admin.department}
                         </h3>
+                        <p className="text-xs text-gray-400 italic">ID: {admin.adminId}</p>
                       </div>
                       <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#0D9488] group-hover:text-white transition-all transform group-hover:rotate-12">
                         →

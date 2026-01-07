@@ -6,7 +6,7 @@ function DepartmentPage() {
   const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
-  const adminId = queryParams.get("adminId");
+  const adminId = queryParams.get("adminId") || "superadmin"; 
   const departmentFromURL = window.location.pathname.split("/").pop();
 
   const [section, setSection] = useState("");
@@ -74,32 +74,51 @@ function DepartmentPage() {
       {/* --- TOP NAVIGATION BAR --- */}
       <nav className="bg-[#0D9488] text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+          
+          {/* Left Side: Brand/Back */}
           <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate(-1)} 
-              className="hover:bg-white/10 p-2 rounded-full transition-colors font-bold"
+              className="hover:bg-white/10 p-2 rounded-full transition-colors font-bold flex items-center justify-center w-10 h-10"
             >
               ←
             </button>
             <h1 className="text-xl font-bold tracking-tight">Department Control</h1>
           </div>
-          <div className="bg-white/10 px-4 py-1.5 rounded-lg border border-white/20">
-             <span className="text-[10px] uppercase font-bold opacity-70 block leading-none">Admin ID</span>
-             <span className="text-sm font-medium">{adminId}</span>
+          
+          {/* Right Side: Admin Info & Logout */}
+          <div className="flex items-center gap-6">
+            <div className="hidden sm:flex flex-col items-end border-r border-white/20 pr-6">
+              <span className="text-[10px] uppercase opacity-80 leading-none font-bold tracking-wider">Logged In</span>
+              <span className="text-sm font-medium tracking-wide">{adminId}</span>
+            </div>
+
+            <button 
+              onClick={() => navigate("/")}
+              className="text-sm bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2 rounded-md transition-all active:scale-95 font-semibold"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </nav>
 
       {/* --- MAIN CONTENT --- */}
       <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="mb-10">
+          <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight capitalize">
+            {departmentFromURL.replace(/-/g, ' ')} <span className="text-[#0D9488]">Management</span>
+          </h2>
+          <p className="text-gray-500 mt-1 italic">Authorized access for session: {adminId}</p>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-10">
-          
           {/* LEFT: Add Section Form */}
-          <div className="w-full lg:w-80 shrink-0">
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 sticky top-24">
-              <h2 className="text-lg font-bold text-gray-800 mb-2">Configure {departmentFromURL}</h2>
+          <div className="w-full lg:w-[320px] shrink-0">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 sticky lg:top-24">
+              <h2 className="text-lg font-bold text-gray-800 mb-2">Configure</h2>
               <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-                Add new academic sections or classes to this department.
+                Add new academic sections to this department.
               </p>
               
               <form onSubmit={handleAddSection} className="space-y-4">
@@ -119,7 +138,7 @@ function DepartmentPage() {
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-[#0D9488] hover:bg-[#0b7a6f] text-white font-bold rounded-xl transition-all shadow-md shadow-teal-900/10 active:scale-[0.98] disabled:opacity-50"
+                  className="w-full py-3 bg-[#0D9488] hover:bg-[#0b7a6f] text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-50"
                 >
                   {loading ? "Adding..." : "Add Section"}
                 </button>
@@ -140,13 +159,10 @@ function DepartmentPage() {
           {/* RIGHT: Sections Grid */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Active Sections</h2>
-                <p className="text-sm text-gray-500">Select a section to manage students and records.</p>
-              </div>
-              <div className="h-10 w-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-400 font-bold">
-                {department?.sections?.length || 0}
-              </div>
+              <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Active Sections</h2>
+              <span className="bg-[#0D9488]/10 text-[#0D9488] text-sm px-4 py-1.5 rounded-full font-bold">
+                {department?.sections?.length || 0} Total
+              </span>
             </div>
 
             {department && department.sections.length > 0 ? (
@@ -177,11 +193,9 @@ function DepartmentPage() {
             ) : (
               <div className="w-full py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
                 <p className="font-medium text-lg">No sections registered yet.</p>
-                <p className="text-sm">Use the form on the left to get started.</p>
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
