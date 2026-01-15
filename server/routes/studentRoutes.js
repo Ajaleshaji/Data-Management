@@ -45,20 +45,37 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  try {
-    const { rollNumber, password } = req.body;
+  const { rollNumber, password } = req.body;
 
+  try {
     const student = await Student.findOne({ rollNumber, password });
     if (!student) {
-      return res.status(400).json({ msg: "Invalid Roll Number or Password" });
+      return res.status(400).json({ msg: "Invalid credentials" });
     }
 
-    res.json({ msg: "Login successful", student });
+    res.json({
+      rollNumber: student.rollNumber,
+      isDefaultPassword: student.isDefaultPassword
+    });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ msg: "Server error" });
   }
 });
 
+/* ---------- CHANGE PASSWORD ---------- */
+router.post("/change-password", async (req, res) => {
+  const { rollNumber, newPassword } = req.body;
+
+  try {
+    await Student.updateOne(
+      { rollNumber },
+      { password: newPassword, isDefaultPassword: false }
+    );
+
+    res.json({ msg: "Password updated successfully" });
+  } catch (err) {
+    res.status(500).json({ msg: "Password update failed" });
+  }
+});
 
 export default router;

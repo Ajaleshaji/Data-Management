@@ -5,6 +5,10 @@ const studentSchema = new mongoose.Schema({
   password: { type: String, required: true },
   department: { type: String, required: true },
   section: { type: String, required: true },
+  isDefaultPassword: {
+    type: Boolean,
+    default: true
+  }
 });
 
 export default mongoose.model("Student", studentSchema);
