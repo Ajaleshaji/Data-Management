@@ -14,7 +14,7 @@ function Login() {
     setError("");
     
     try {
-      const res = await fetch("http://localhost:5000/api/superadmin/login", {
+      const res = await fetch("https://data-management-1-rkqx.onrender.com/api/superadmin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ superAdminId, password }),

@@ -14,7 +14,7 @@ function StudentDashboard() {
 
   const fetchFiles = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/student-files/${rollNumber}`);
+      const res = await fetch(`https://data-management-1-rkqx.onrender.com/api/student-files/${rollNumber}`);
       const data = await res.json();
       setFiles(data);
     } catch (err) {
@@ -34,7 +34,7 @@ function StudentDashboard() {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/student-files/upload", {
+      const res = await fetch("https://data-management-1-rkqx.onrender.com/api/student-files/upload", {
         method: "POST",
         body: formData,
       });
@@ -57,7 +57,7 @@ function StudentDashboard() {
   const deleteFile = async (id) => {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
     try {
-      await fetch(`http://localhost:5000/api/student-files/delete/${id}`, {
+      await fetch(`https://data-management-1-rkqx.onrender.com/api/student-files/delete/${id}`, {
         method: "DELETE",
       });
       fetchFiles();

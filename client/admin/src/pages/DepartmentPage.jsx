@@ -24,7 +24,7 @@ function DepartmentPage() {
   const fetchDepartment = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/departments/${departmentFromURL}`
+        `https://data-management-1-rkqx.onrender.com/api/departments/${departmentFromURL}`
       );
       const data = await res.json();
       setDepartment(data.department || null);
@@ -42,7 +42,7 @@ function DepartmentPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/departments/create", {
+      const res = await fetch("https://data-management-1-rkqx.onrender.com/api/departments/create", {
         // Correcting to POST as per your requirement
         method: "POST", 
         headers: { "Content-Type": "application/json" },

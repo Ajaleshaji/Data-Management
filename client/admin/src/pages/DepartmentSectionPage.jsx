@@ -22,7 +22,7 @@ function DepartmentSectionPage() {
   const fetchStudents = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/students?department=${department}&section=${section}`
+        `https://data-management-1-rkqx.onrender.com/api/students?department=${department}&section=${section}`
       );
       const data = await res.json();
       if (res.ok) {
@@ -63,7 +63,7 @@ function DepartmentSectionPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/students/create-many", {
+      const res = await fetch("https://data-management-1-rkqx.onrender.com/api/students/create-many", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ students: generated }),
@@ -91,7 +91,7 @@ function DepartmentSectionPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/students/${rollNumber}`, {
+      const res = await fetch(`https://data-management-1-rkqx.onrender.com/api/students/${rollNumber}`, {
         method: "DELETE",
       });
 

@@ -30,7 +30,7 @@ function Dashboard() {
 
   const fetchFiles = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/student-files/${rollNumber}`);
+      const res = await fetch(`https://data-management-1-rkqx.onrender.com/api/student-files/${rollNumber}`);
       const data = await res.json();
       setFiles(data);
     } catch (err) {
@@ -50,7 +50,7 @@ function Dashboard() {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/student-files/upload", {
+      const res = await fetch("https://data-management-1-rkqx.onrender.com/api/student-files/upload", {
         method: "POST",
         body: formData,
       });
@@ -71,7 +71,7 @@ function Dashboard() {
   const deleteFile = async (id) => {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
     try {
-      await fetch(`http://localhost:5000/api/student-files/delete/${id}`, {
+      await fetch(`https://data-management-1-rkqx.onrender.com/api/student-files/delete/${id}`, {
         method: "DELETE",
       });
       fetchFiles();
@@ -92,7 +92,7 @@ function Dashboard() {
 
     try {
       setPasswordLoading(true);
-      await fetch("http://localhost:5000/api/students/change-password", {
+      await fetch("https://data-management-1-rkqx.onrender.com/api/students/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rollNumber, newPassword }),

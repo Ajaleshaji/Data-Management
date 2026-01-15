@@ -24,7 +24,7 @@ function Home() {
   const fetchAdmins = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/superadmin/get-admins?superAdminId=${SUPER_ADMIN_ID}`
+        `https://data-management-1-rkqx.onrender.com/api/superadmin/get-admins?superAdminId=${SUPER_ADMIN_ID}`
       );
       if (!res.ok) throw new Error("Failed to fetch admins");
       const data = await res.json();
@@ -40,7 +40,7 @@ function Home() {
     }
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/superadmin/create-admin", {
+      const res = await fetch("https://data-management-1-rkqx.onrender.com/api/superadmin/create-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

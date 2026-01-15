@@ -22,7 +22,7 @@ function AdminLogin() {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/superadmin/admin-login",
+        "https://data-management-1-rkqx.onrender.com/api/superadmin/admin-login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
