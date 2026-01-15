@@ -84,8 +84,31 @@ function DepartmentSectionPage() {
     }
   };
 
+  /* ---------- DELETE FUNCTION ---------- */
+  const deleteStudent = async (rollNumber) => {
+    if (!window.confirm(`Are you sure you want to delete student ${rollNumber}?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/students/${rollNumber}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setMessage("Student deleted successfully");
+        fetchStudents(); // Refresh the list
+      } else {
+        const data = await res.json();
+        setMessage(data.msg || "Delete failed");
+      }
+    } catch (err) {
+      setMessage("Server error while deleting");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       {/* --- TOP NAVIGATION --- */}
       <nav className="bg-[#0D9488] text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
@@ -186,7 +209,7 @@ function DepartmentSectionPage() {
                     <th className="px-6 py-4 font-bold">#</th>
                     <th className="px-6 py-4 font-bold">Roll Number</th>
                     <th className="px-6 py-4 font-bold">Status</th>
-                    <th className="px-6 py-4 text-right font-bold">Action</th>
+                    <th className="px-6 py-4 text-right font-bold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -212,12 +235,18 @@ function DepartmentSectionPage() {
                             Active
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-4 text-right flex justify-end gap-2">
                           <button 
                             onClick={() => navigate(`/admin/student/${stu.rollNumber}`)}
-                            className="text-xs font-bold text-[#0D9488] bg-[#0D9488]/5 hover:bg-[#0D9488] hover:text-white px-4 py-2 rounded-lg transition-all"
+                            className="text-[11px] font-bold text-[#0D9488] bg-[#0D9488]/5 hover:bg-[#0D9488] hover:text-white px-3 py-1.5 rounded-lg transition-all"
                           >
-                            View Profile
+                            View
+                          </button>
+                          <button 
+                            onClick={() => deleteStudent(stu.rollNumber)}
+                            className="text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg transition-all"
+                          >
+                            Delete
                           </button>
                         </td>
                       </tr>

@@ -78,4 +78,23 @@ router.post("/change-password", async (req, res) => {
   }
 });
 
+// DELETE student by rollNumber
+router.delete("/:rollNumber", async (req, res) => {
+  try {
+    const { rollNumber } = req.params;
+
+    const deleted = await Student.findOneAndDelete({ rollNumber });
+
+    if (!deleted) {
+      return res.status(404).json({ msg: "Student not found" });
+    }
+
+    res.json({ msg: "Student deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+
 export default router;
