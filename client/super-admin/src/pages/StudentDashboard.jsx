@@ -4,9 +4,13 @@ import { useParams, useNavigate } from "react-router-dom";
 function StudentDashboard() {
   const { rollNumber } = useParams();
   const navigate = useNavigate();
+
   const [file, setFile] = useState(null);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // 🔥 NEW: preview modal state
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
     fetchFiles();
@@ -14,7 +18,9 @@ function StudentDashboard() {
 
   const fetchFiles = async () => {
     try {
-      const res = await fetch(`https://data-management-1-rkqx.onrender.com/api/student-files/${rollNumber}`);
+      const res = await fetch(
+        `https://data-management-1-rkqx.onrender.com/api/student-files/${rollNumber}`
+      );
       const data = await res.json();
       setFiles(data);
     } catch (err) {
@@ -34,16 +40,18 @@ function StudentDashboard() {
 
     try {
       setLoading(true);
-      const res = await fetch("https://data-management-1-rkqx.onrender.com/api/student-files/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(
+        "https://data-management-1-rkqx.onrender.com/api/student-files/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
-      // Reset the file input manually
-      document.getElementById('file-upload').value = "";
+      document.getElementById("file-upload").value = "";
       fetchFiles();
     } catch (err) {
       alert("File upload failed");
@@ -55,13 +63,23 @@ function StudentDashboard() {
   const deleteFile = async (id) => {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
     try {
-      await fetch(`https://data-management-1-rkqx.onrender.com/api/student-files/delete/${id}`, {
-        method: "DELETE",
-      });
+      await fetch(
+        `https://data-management-1-rkqx.onrender.com/api/student-files/delete/${id}`,
+        { method: "DELETE" }
+      );
       fetchFiles();
     } catch (err) {
       console.error("Delete error:", err);
     }
+  };
+
+  // 🔥 NEW: preview handlers
+  const openPreview = (url) => {
+    setPreviewUrl(url);
+  };
+
+  const closePreview = () => {
+    setPreviewUrl(null);
   };
 
   return (
@@ -70,13 +88,20 @@ function StudentDashboard() {
       <nav className="bg-[#0D9488] text-white shadow-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)} className="hover:bg-white/10 p-2 rounded-full transition-colors">
+            <button
+              onClick={() => navigate(-1)}
+              className="hover:bg-white/10 p-2 rounded-full transition-colors"
+            >
               ←
             </button>
-            <h1 className="text-lg font-bold tracking-tight text-white">Student Documents</h1>
+            <h1 className="text-lg font-bold tracking-tight text-white">
+              Student Documents
+            </h1>
           </div>
           <div className="text-right">
-            <p className="text-[10px] uppercase opacity-70 font-bold tracking-widest">Student Profile</p>
+            <p className="text-[10px] uppercase opacity-70 font-bold tracking-widest">
+              Student Profile
+            </p>
             <p className="text-sm font-medium">{rollNumber}</p>
           </div>
         </div>
@@ -84,13 +109,15 @@ function StudentDashboard() {
 
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
           {/* LEFT: Upload Section */}
           <div className="lg:col-span-4">
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 sticky top-24">
-              <h2 className="text-lg font-bold text-gray-800 mb-2">Upload Files</h2>
+              <h2 className="text-lg font-bold text-gray-800 mb-2">
+                Upload Files
+              </h2>
               <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-                Upload assignments, IDs, or certificates. Supports PDF, JPG, and PNG.
+                Upload assignments, IDs, or certificates. Supports PDF, JPG, and
+                PNG.
               </p>
 
               <div className="space-y-4">
@@ -106,7 +133,9 @@ function StudentDashboard() {
                     <p className="text-sm font-medium text-gray-600 group-hover:text-[#0D9488]">
                       {file ? file.name : "Click to browse or drag file"}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">Max size: 5MB</p>
+                    <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">
+                      Max size: 5MB
+                    </p>
                   </div>
                 </div>
 
@@ -125,7 +154,9 @@ function StudentDashboard() {
           <div className="lg:col-span-8">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h3 className="font-bold text-gray-800 tracking-tight">Recent Uploads</h3>
+                <h3 className="font-bold text-gray-800 tracking-tight">
+                  Recent Uploads
+                </h3>
                 <span className="text-xs font-bold bg-[#0D9488]/10 text-[#0D9488] px-3 py-1 rounded-full">
                   {files.length} Files
                 </span>
@@ -134,26 +165,38 @@ function StudentDashboard() {
               <div className="divide-y divide-gray-100">
                 {files.length === 0 ? (
                   <div className="px-6 py-20 text-center flex flex-col items-center">
-                    <span className="text-4xl mb-4 grayscale opacity-20">📭</span>
-                    <p className="text-gray-400 font-medium">No files uploaded yet.</p>
+                    <span className="text-4xl mb-4 grayscale opacity-20">
+                      📭
+                    </span>
+                    <p className="text-gray-400 font-medium">
+                      No files uploaded yet.
+                    </p>
                   </div>
                 ) : (
                   files.map((f) => (
-                    <div key={f._id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group">
+                    <div
+                      key={f._id}
+                      className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
+                    >
                       <div className="flex items-center gap-4 overflow-hidden">
                         <div className="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center text-[#0D9488] font-bold shrink-0">
-                          {f.fileName.split('.').pop().toUpperCase().substring(0, 3)}
+                          {f.fileName
+                            .split(".")
+                            .pop()
+                            .toUpperCase()
+                            .substring(0, 3)}
                         </div>
                         <div className="truncate">
-                          <a
-                            href={f.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-bold text-gray-700 hover:text-[#0D9488] truncate block text-sm"
+                          {/* 🔥 CHANGED: button instead of <a> */}
+                          <button
+                            onClick={() => openPreview(f.fileUrl)}
+                            className="font-bold text-gray-700 hover:text-[#0D9488] truncate block text-sm text-left"
                           >
                             {f.fileName}
-                          </a>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Cloud Storage · Verified</p>
+                          </button>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                            Cloud Storage · Verified
+                          </p>
                         </div>
                       </div>
 
@@ -169,18 +212,42 @@ function StudentDashboard() {
                 )}
               </div>
             </div>
-            
-            {/* Footer Information */}
+
             <div className="mt-6 flex items-center gap-2 px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">
               <span className="text-sm">💡</span>
               <p className="text-[11px] text-amber-700 font-medium leading-tight">
-                Files are stored securely on Cloudinary. Clicking a file name will open it in a new tab for previewing or printing.
+                Files are stored securely on Cloudinary. Clicking a file name
+                will preview it inside this dashboard.
               </p>
             </div>
           </div>
-
         </div>
       </div>
+
+      {/* 🔥 PREVIEW POPUP MODAL */}
+      {previewUrl && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white w-[90%] h-[90%] rounded-xl shadow-xl relative overflow-hidden">
+            <div className="flex justify-between items-center px-4 py-2 border-b bg-gray-50">
+              <h3 className="text-sm font-bold text-gray-700">
+                File Preview
+              </h3>
+              <button
+                onClick={closePreview}
+                className="text-red-500 font-bold text-lg hover:bg-red-50 px-3 rounded"
+              >
+                ✕
+              </button>
+            </div>
+
+            <iframe
+              src={`${previewUrl}#toolbar=1&navpanes=0`}
+              title="File Preview"
+              className="w-full h-full border-0"
+            ></iframe>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
