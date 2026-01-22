@@ -226,28 +226,27 @@ function StudentDashboard() {
 
       {/* 🔥 PREVIEW POPUP MODAL */}
       {previewUrl && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white w-[90%] h-[90%] rounded-xl shadow-xl relative overflow-hidden">
-            <div className="flex justify-between items-center px-4 py-2 border-b bg-gray-50">
-              <h3 className="text-sm font-bold text-gray-700">
-                File Preview
-              </h3>
-              <button
-                onClick={closePreview}
-                className="text-red-500 font-bold text-lg hover:bg-red-50 px-3 rounded"
-              >
-                ✕
-              </button>
-            </div>
+  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div className="bg-white w-[90%] h-[90%] rounded-xl shadow-xl relative overflow-hidden">
+      <div className="flex justify-between items-center px-4 py-2 border-b bg-gray-50">
+        <h3 className="text-sm font-bold text-gray-700">File Preview</h3>
+        <button
+          onClick={() => setPreviewUrl(null)}
+          className="text-red-500 font-bold text-lg hover:bg-red-50 px-3 rounded"
+        >
+          ✕
+        </button>
+      </div>
 
-            <iframe
-              src={`${previewUrl}#toolbar=1&navpanes=0`}
-              title="File Preview"
-              className="w-full h-full border-0"
-            ></iframe>
-          </div>
-        </div>
-      )}
+      <iframe
+        src={previewUrl.replace("/upload/", "/upload/fl_attachment:false/")}
+        title="File Preview"
+        className="w-full h-full border-0"
+      />
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
