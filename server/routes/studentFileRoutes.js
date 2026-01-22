@@ -16,26 +16,24 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       return res.status(400).json({ msg: "File or roll number missing" });
     }
 
-    console.log("File received:", req.file.originalname);
-
-    // 🔥 IMPORTANT FIX HERE
     const result = await cloudinary.uploader.upload(
       `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
       {
         folder: `students/${rollNumber}`,
-        resource_type: "raw",   // FORCE raw for PDFs
-        type: "upload",        // PUBLIC delivery
+        resource_type: "raw",   // ✅ FORCE RAW
+        type: "upload",
         use_filename: true,
         unique_filename: false
       }
     );
 
-    console.log("Cloudinary upload result:", result);
+    // 🔥 FIX URL FORMAT (critical)
+    const fixedUrl = result.secure_url.replace("/image/upload/", "/raw/upload/");
 
     const newFile = new StudentFile({
       rollNumber,
       fileName: req.file.originalname,
-      fileUrl: result.secure_url,   // PUBLIC LINK
+      fileUrl: fixedUrl,   // ✅ PUBLIC RAW LINK
       publicId: result.public_id,
       fileType: req.file.mimetype,
     });
