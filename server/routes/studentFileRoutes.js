@@ -16,20 +16,26 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       return res.status(400).json({ msg: "File or roll number missing" });
     }
 
-    console.log("File received:", req.file.originalname); // debug
+    console.log("File received:", req.file.originalname);
 
-    // Cloudinary upload
+    // 🔥 IMPORTANT FIX HERE
     const result = await cloudinary.uploader.upload(
       `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
-      { folder: `students/${rollNumber}`, resource_type: "auto" }
+      {
+        folder: `students/${rollNumber}`,
+        resource_type: "raw",   // FORCE raw for PDFs
+        type: "upload",        // PUBLIC delivery
+        use_filename: true,
+        unique_filename: false
+      }
     );
 
-    console.log("Cloudinary upload result:", result); // debug
+    console.log("Cloudinary upload result:", result);
 
     const newFile = new StudentFile({
       rollNumber,
       fileName: req.file.originalname,
-      fileUrl: result.secure_url,
+      fileUrl: result.secure_url,   // PUBLIC LINK
       publicId: result.public_id,
       fileType: req.file.mimetype,
     });
@@ -38,10 +44,11 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
     res.status(201).json(newFile);
   } catch (err) {
-    console.error("UPLOAD ERROR:", err); // <--- this will show why 500 occurs
+    console.error("UPLOAD ERROR:", err);
     res.status(500).json({ msg: "Upload failed", error: err.message });
   }
 });
+
 
 
 // Fetch files
@@ -58,10 +65,9 @@ router.delete("/delete/:id", async (req, res) => {
       return res.status(404).json({ msg: "File not found" });
     }
 
-    // Old records safety
     if (file.publicId) {
       await cloudinary.uploader.destroy(file.publicId, {
-        resource_type: "raw", // IMPORTANT for pdf, docx
+        resource_type: "raw", // REQUIRED for PDFs
       });
     }
 
