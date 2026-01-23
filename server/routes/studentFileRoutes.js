@@ -20,26 +20,22 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
       {
         folder: `students/${rollNumber}`,
-        resource_type: "raw",   // ✅ FORCE RAW
-        type: "upload",
+        resource_type: "auto",   // ✅ let Cloudinary detect PDF/image
+        disposition: "inline",  // ✅ PREVENT DOWNLOAD
         use_filename: true,
-        unique_filename: false
+        unique_filename: false,
       }
     );
-
-    // 🔥 FIX URL FORMAT (critical)
-    const fixedUrl = result.secure_url.replace("/image/upload/", "/raw/upload/");
 
     const newFile = new StudentFile({
       rollNumber,
       fileName: req.file.originalname,
-      fileUrl: fixedUrl,   // ✅ PUBLIC RAW LINK
+      fileUrl: result.secure_url,  // ✅ DO NOT MODIFY URL
       publicId: result.public_id,
       fileType: req.file.mimetype,
     });
 
     await newFile.save();
-
     res.status(201).json(newFile);
   } catch (err) {
     console.error("UPLOAD ERROR:", err);
@@ -65,12 +61,11 @@ router.delete("/delete/:id", async (req, res) => {
 
     if (file.publicId) {
       await cloudinary.uploader.destroy(file.publicId, {
-        resource_type: "raw", // REQUIRED for PDFs
+        resource_type: "auto",   // ✅ matches upload type
       });
     }
 
     await StudentFile.findByIdAndDelete(req.params.id);
-
     res.json({ msg: "File deleted successfully" });
   } catch (err) {
     console.error("DELETE ERROR:", err);
