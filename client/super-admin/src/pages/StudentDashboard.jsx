@@ -239,7 +239,7 @@ function StudentDashboard() {
       </div>
 
       <iframe
-        src={previewUrl.replace("/upload/", "/upload/fl_attachment:false/")}
+        src={previewUrl}
         title="File Preview"
         className="w-full h-full border-0"
       />
