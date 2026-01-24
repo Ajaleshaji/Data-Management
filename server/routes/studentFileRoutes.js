@@ -1,5 +1,5 @@
 import express from "express";
-import upload from "../middleware/upload.js";
+import upload from "../middleware/multer.js";
 import StudentFile from "../models/StudentFile.js";
 import cloudinary from "../config/cloudinary.js";
 
