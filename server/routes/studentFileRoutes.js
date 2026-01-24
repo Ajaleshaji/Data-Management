@@ -61,6 +61,7 @@ router.get("/:rollNumber", async (req, res) => {
         const previewUrl = cloudinary.url(file.publicId, {
           secure: true,
           resource_type: resourceType,
+          format: isPdf ? "pdf" : undefined,
           sign_url: true,
         });
         return { ...file, previewUrl };
