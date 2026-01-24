@@ -58,9 +58,10 @@ router.get("/:rollNumber", async (req, res) => {
         const isPdf = file.fileType === "application/pdf";
         const previewUrl = cloudinary.url(file.publicId, {
           secure: true,
-          resource_type: "image", // Treat as image to enable transformations
-          flags: "attachment:false", // Force inline display
-          format: isPdf ? "pdf" : undefined, // Maintain PDF format if applicable
+          resource_type: "image", 
+          flags: "attachment:false", 
+          format: isPdf ? "pdf" : undefined, 
+          sign_url: true, 
         });
         return { ...file, previewUrl };
       } catch (error) {

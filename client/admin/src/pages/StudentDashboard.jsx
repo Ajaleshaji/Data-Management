@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
+import BACKEND_URL from "../config/api";
+
 function StudentDashboard() {
   const { rollNumber } = useParams();
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ function StudentDashboard() {
 
   const fetchFiles = async () => {
     try {
-      const res = await fetch(`https://data-management-1-rkqx.onrender.com/api/student-files/${rollNumber}`);
+      const res = await fetch(`${BACKEND_URL}/api/student-files/${rollNumber}`);
       const data = await res.json();
       setFiles(data);
     } catch (err) {
@@ -36,7 +38,7 @@ function StudentDashboard() {
 
     try {
       setLoading(true);
-      const res = await fetch("https://data-management-1-rkqx.onrender.com/api/student-files/upload", {
+      const res = await fetch(`${BACKEND_URL}/api/student-files/upload`, {
         method: "POST",
         body: formData,
       });
@@ -58,7 +60,7 @@ function StudentDashboard() {
   const deleteFile = async (id) => {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
     try {
-      await fetch(`https://data-management-1-rkqx.onrender.com/api/student-files/delete/${id}`, {
+      await fetch(`${BACKEND_URL}/api/student-files/delete/${id}`, {
         method: "DELETE",
       });
       fetchFiles();
@@ -217,7 +219,7 @@ function StudentDashboard() {
 
             {/* Modal Body */}
             <div className="flex-1 bg-gray-50 relative overflow-hidden flex items-center justify-center p-2">
-              {previewUrl.toLowerCase().endsWith(".pdf") ? (
+              {previewUrl.toLowerCase().includes(".pdf") ? (
                 <iframe
                   src={previewUrl}
                   className="w-full h-full rounded-lg border border-gray-200 bg-white shadow-inner"

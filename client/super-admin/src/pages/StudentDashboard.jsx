@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
+import BACKEND_URL from "../config/api";
+
 function StudentDashboard() {
   const { rollNumber } = useParams();
   const navigate = useNavigate();
@@ -18,7 +20,7 @@ function StudentDashboard() {
   const fetchFiles = async () => {
     try {
       const res = await fetch(
-        `https://data-management-1-rkqx.onrender.com/api/student-files/${rollNumber}`
+        `${BACKEND_URL}/api/student-files/${rollNumber}`
       );
       const data = await res.json();
       setFiles(data);
@@ -40,7 +42,7 @@ function StudentDashboard() {
     try {
       setLoading(true);
       const res = await fetch(
-        "https://data-management-1-rkqx.onrender.com/api/student-files/upload",
+        `${BACKEND_URL}/api/student-files/upload`,
         {
           method: "POST",
           body: formData,
@@ -63,7 +65,7 @@ function StudentDashboard() {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
     try {
       await fetch(
-        `https://data-management-1-rkqx.onrender.com/api/student-files/delete/${id}`,
+        `${BACKEND_URL}/api/student-files/delete/${id}`,
         { method: "DELETE" }
       );
       fetchFiles();
@@ -197,7 +199,7 @@ function StudentDashboard() {
               </button>
             </div>
 
-            {previewUrl.endsWith(".pdf") ? (
+            {previewUrl.includes(".pdf") ? (
               <iframe
                 src={previewUrl}
                 className="w-full h-full border-0"
