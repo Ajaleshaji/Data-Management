@@ -48,10 +48,30 @@ router.get("/:rollNumber", async (req, res) => {
   try {
     const files = await StudentFile.find({
       rollNumber: req.params.rollNumber,
-    }).sort({ uploadedAt: -1 });
+    })
+      .sort({ uploadedAt: -1 })
+      .lean(); // Use lean() to get plain objects we can modify
 
-    res.json(files);
+    // Generate signed preview URLs
+    const filesWithPreview = files.map((file) => {
+      try {
+        const isPdf = file.fileType === "application/pdf";
+        const previewUrl = cloudinary.url(file.publicId, {
+          secure: true,
+          resource_type: "image", // Treat as image to enable transformations
+          flags: "attachment:false", // Force inline display
+          format: isPdf ? "pdf" : undefined, // Maintain PDF format if applicable
+        });
+        return { ...file, previewUrl };
+      } catch (error) {
+        console.error("URL Generation Error:", error);
+        return { ...file, previewUrl: file.fileUrl };
+      }
+    });
+
+    res.json(filesWithPreview);
   } catch (err) {
+    console.error("FETCH ERROR:", err);
     res.status(500).json({ msg: "Fetch failed" });
   }
 });

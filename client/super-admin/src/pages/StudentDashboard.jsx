@@ -36,7 +36,7 @@ function StudentDashboard() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("rollNumber", rollNumber);
-
+    formData.append("upload_preset", "Certificate");
     try {
       setLoading(true);
       const res = await fetch(
@@ -74,15 +74,8 @@ function StudentDashboard() {
 
   // 🔥 FORCE INLINE PREVIEW URL
   const openPreview = (url) => {
-    if (url.includes("/upload/") && url.endsWith(".pdf")) {
-      const inlineUrl = url.replace(
-        "/upload/",
-        "/image/upload/fl_attachment:false/"
-      );
-      setPreviewUrl(inlineUrl);
-    } else {
-      setPreviewUrl(url);
-    }
+    if (!url) return;
+    setPreviewUrl(url);
   };
 
   return (
@@ -170,7 +163,7 @@ function StudentDashboard() {
                       className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
                     >
                       <button
-                        onClick={() => openPreview(f.fileUrl)}
+                        onClick={() => openPreview(f.previewUrl || f.fileUrl)}
                         className="font-bold text-gray-700 hover:text-[#0D9488]"
                       >
                         {f.fileName}

@@ -7,6 +7,8 @@ function StudentDashboard() {
   const [file, setFile] = useState(null);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = React.useRef(null);
 
   useEffect(() => {
     fetchFiles();
@@ -42,10 +44,9 @@ function StudentDashboard() {
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
-      // Reset input manually
-      const fileInput = document.getElementById('file-upload');
-      if (fileInput) fileInput.value = "";
-      
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+
       fetchFiles();
     } catch (err) {
       alert("File upload failed");
@@ -67,7 +68,13 @@ function StudentDashboard() {
   };
 
   // Helper to get extension for the icon
-  const getFileExtension = (name) => name.split('.').pop().toUpperCase().substring(0, 3);
+  const getFileExtension = (name) => name.split(".").pop().toUpperCase().substring(0, 3);
+
+  // Professional Preview Handler
+  const openPreview = (url) => {
+    if (!url) return;
+    setPreviewUrl(url);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -75,8 +82,8 @@ function StudentDashboard() {
       <nav className="bg-[#0D9488] text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate(-1)} 
+            <button
+              onClick={() => navigate(-1)}
               className="hover:bg-white/10 p-2 rounded-full transition-colors font-bold"
             >
               ←
@@ -92,7 +99,7 @@ function StudentDashboard() {
 
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* --- LEFT: UPLOAD CARD --- */}
           <div className="lg:col-span-4">
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 sticky top-24">
@@ -104,6 +111,7 @@ function StudentDashboard() {
               <div className="space-y-4">
                 <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-8 hover:border-[#0D9488] transition-colors bg-gray-50 group text-center">
                   <input
+                    ref={fileInputRef}
                     id="file-upload"
                     type="file"
                     onChange={(e) => setFile(e.target.files[0])}
@@ -155,15 +163,15 @@ function StudentDashboard() {
                           {getFileExtension(f.fileName)}
                         </div>
                         <div className="truncate">
-                          <a
-                            href={f.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-bold text-gray-700 hover:text-[#0D9488] truncate block text-sm transition-colors"
+                          <button
+                            onClick={() => openPreview(f.previewUrl || f.fileUrl)}
+                            className="font-bold text-gray-700 hover:text-[#0D9488] truncate block text-sm transition-colors text-left"
                           >
                             {f.fileName}
-                          </a>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Secure Link</p>
+                          </button>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                            Click to Preview
+                          </p>
                         </div>
                       </div>
 
@@ -190,6 +198,42 @@ function StudentDashboard() {
 
         </div>
       </div>
+
+      {/* --- PREVIEW MODAL --- */}
+      {previewUrl && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4 transition-opacity duration-300">
+          <div className="bg-white w-full max-w-5xl h-[85vh] rounded-2xl shadow-2xl relative overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-white">
+              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Document Preview</h3>
+              <button
+                onClick={() => setPreviewUrl(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
+                title="Close Preview"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 bg-gray-50 relative overflow-hidden flex items-center justify-center p-2">
+              {previewUrl.toLowerCase().endsWith(".pdf") ? (
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-full rounded-lg border border-gray-200 bg-white shadow-inner"
+                  title="PDF Preview"
+                />
+              ) : (
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
