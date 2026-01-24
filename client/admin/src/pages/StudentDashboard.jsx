@@ -224,6 +224,7 @@ function StudentDashboard() {
                   src={previewUrl}
                   className="w-full h-full rounded-lg border border-gray-200 bg-white shadow-inner"
                   title="PDF Preview"
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-downloads allow-popups"
                 />
               ) : (
                 <img

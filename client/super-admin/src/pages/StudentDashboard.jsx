@@ -205,7 +205,7 @@ function StudentDashboard() {
                 className="w-full h-full border-0"
                 title="PDF Preview"
                 allow="fullscreen"
-                sandbox="allow-same-origin allow-scripts allow-forms"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-downloads allow-popups"
               />
             ) : (
               <img

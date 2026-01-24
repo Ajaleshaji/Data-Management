@@ -21,9 +21,6 @@ router.post("/upload", upload.single("file"), async (req, res) => {
         resource_type: "auto",
         use_filename: true,
         unique_filename: false,
-
-        // 🔥 FORCE INLINE PREVIEW
-        flags: "attachment:false",
       }
     );
 
@@ -58,10 +55,9 @@ router.get("/:rollNumber", async (req, res) => {
         const isPdf = file.fileType === "application/pdf";
         const previewUrl = cloudinary.url(file.publicId, {
           secure: true,
-          resource_type: "image", 
-          flags: "attachment:false", 
-          format: isPdf ? "pdf" : undefined, 
-          sign_url: true, 
+          resource_type: "image",
+          format: isPdf ? "pdf" : undefined,
+          sign_url: true,
         });
         return { ...file, previewUrl };
       } catch (error) {
