@@ -38,7 +38,7 @@ function StudentDashboard() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("rollNumber", rollNumber);
-    formData.append("upload_preset", "Certificate");
+    formData.append("upload_preset", "Certificates");
     try {
       setLoading(true);
       const res = await fetch(
