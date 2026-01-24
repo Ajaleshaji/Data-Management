@@ -61,7 +61,6 @@ router.get("/:rollNumber", async (req, res) => {
         const previewUrl = cloudinary.url(file.publicId, {
           secure: true,
           resource_type: resourceType,
-          format: (isPdf && resourceType === "image") ? "pdf" : undefined,
           sign_url: true,
         });
         return { ...file, previewUrl };
@@ -85,7 +84,7 @@ router.delete("/delete/:id", async (req, res) => {
     if (!file) return res.status(404).json({ msg: "File not found" });
 
     await cloudinary.uploader.destroy(file.publicId, {
-      resource_type: file.resourceType || "auto",
+      resource_type: file.resourceType || "image",
     });
 
     await StudentFile.findByIdAndDelete(req.params.id);
