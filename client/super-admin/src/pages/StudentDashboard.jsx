@@ -9,7 +9,6 @@ function StudentDashboard() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 NEW: preview modal state
   const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
@@ -73,18 +72,21 @@ function StudentDashboard() {
     }
   };
 
-  // 🔥 NEW: preview handlers
+  // 🔥 FORCE INLINE PREVIEW URL
   const openPreview = (url) => {
-    setPreviewUrl(url);
-  };
-
-  const closePreview = () => {
-    setPreviewUrl(null);
+    if (url.includes("/upload/") && url.endsWith(".pdf")) {
+      const inlineUrl = url.replace(
+        "/upload/",
+        "/image/upload/fl_attachment:false/"
+      );
+      setPreviewUrl(inlineUrl);
+    } else {
+      setPreviewUrl(url);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Navigation Header */}
       <nav className="bg-[#0D9488] text-white shadow-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
           <div className="flex items-center gap-4">
@@ -109,15 +111,13 @@ function StudentDashboard() {
 
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* LEFT: Upload Section */}
           <div className="lg:col-span-4">
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 sticky top-24">
               <h2 className="text-lg font-bold text-gray-800 mb-2">
                 Upload Files
               </h2>
               <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-                Upload assignments, IDs, or certificates. Supports PDF, JPG, and
-                PNG.
+                Upload assignments, IDs, or certificates. Supports PDF, JPG, PNG.
               </p>
 
               <div className="space-y-4">
@@ -133,24 +133,20 @@ function StudentDashboard() {
                     <p className="text-sm font-medium text-gray-600 group-hover:text-[#0D9488]">
                       {file ? file.name : "Click to browse or drag file"}
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">
-                      Max size: 5MB
-                    </p>
                   </div>
                 </div>
 
                 <button
                   onClick={uploadFile}
                   disabled={loading || !file}
-                  className="w-full py-3 bg-[#0D9488] hover:bg-[#0b7a6f] text-white font-bold rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:bg-gray-300"
+                  className="w-full py-3 bg-[#0D9488] hover:bg-[#0b7a6f] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
                 >
-                  {loading ? "Uploading to Cloud..." : "Submit File"}
+                  {loading ? "Uploading..." : "Submit File"}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* RIGHT: File List */}
           <div className="lg:col-span-8">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
@@ -164,13 +160,8 @@ function StudentDashboard() {
 
               <div className="divide-y divide-gray-100">
                 {files.length === 0 ? (
-                  <div className="px-6 py-20 text-center flex flex-col items-center">
-                    <span className="text-4xl mb-4 grayscale opacity-20">
-                      📭
-                    </span>
-                    <p className="text-gray-400 font-medium">
-                      No files uploaded yet.
-                    </p>
+                  <div className="px-6 py-20 text-center">
+                    No files uploaded yet.
                   </div>
                 ) : (
                   files.map((f) => (
@@ -178,85 +169,59 @@ function StudentDashboard() {
                       key={f._id}
                       className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
                     >
-                      <div className="flex items-center gap-4 overflow-hidden">
-                        <div className="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center text-[#0D9488] font-bold shrink-0">
-                          {f.fileName
-                            .split(".")
-                            .pop()
-                            .toUpperCase()
-                            .substring(0, 3)}
-                        </div>
-                        <div className="truncate">
-                          {/* 🔥 CHANGED: button instead of <a> */}
-                          <button
-                            onClick={() => openPreview(f.fileUrl)}
-                            className="font-bold text-gray-700 hover:text-[#0D9488] truncate block text-sm text-left"
-                          >
-                            {f.fileName}
-                          </button>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                            Cloud Storage · Verified
-                          </p>
-                        </div>
-                      </div>
+                      <button
+                        onClick={() => openPreview(f.fileUrl)}
+                        className="font-bold text-gray-700 hover:text-[#0D9488]"
+                      >
+                        {f.fileName}
+                      </button>
 
                       <button
                         onClick={() => deleteFile(f._id)}
-                        className="ml-4 p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                        title="Delete File"
+                        className="text-red-500 hover:underline"
                       >
-                        🗑️
+                        Delete
                       </button>
                     </div>
                   ))
                 )}
               </div>
             </div>
-
-            <div className="mt-6 flex items-center gap-2 px-4 py-3 bg-amber-50 rounded-xl border border-amber-100">
-              <span className="text-sm">💡</span>
-              <p className="text-[11px] text-amber-700 font-medium leading-tight">
-                Files are stored securely on Cloudinary. Clicking a file name
-                will preview it inside this dashboard.
-              </p>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* 🔥 PREVIEW POPUP MODAL */}
-     {previewUrl && (
-  <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div className="bg-white w-[90%] h-[90%] rounded-xl shadow-xl relative overflow-hidden">
-      <div className="flex justify-between items-center px-4 py-2 border-b bg-gray-50">
-        <h3 className="text-sm font-bold text-gray-700">File Preview</h3>
-        <button
-          onClick={() => setPreviewUrl(null)}
-          className="text-red-500 font-bold text-lg hover:bg-red-50 px-3 rounded"
-        >
-          ✕
-        </button>
-      </div>
+      {previewUrl && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white w-[90%] h-[90%] rounded-xl shadow-xl relative overflow-hidden">
+            <div className="flex justify-between items-center px-4 py-2 border-b bg-gray-50">
+              <h3 className="text-sm font-bold text-gray-700">File Preview</h3>
+              <button
+                onClick={() => setPreviewUrl(null)}
+                className="text-red-500 font-bold text-lg hover:bg-red-50 px-3 rounded"
+              >
+                ✕
+              </button>
+            </div>
 
-      {/* 🔥 PDF + Image Auto Preview */}
-      {previewUrl.endsWith(".pdf") ? (
-        <iframe
-          src={previewUrl}
-          className="w-full h-full border-0"
-          title="PDF Preview"
-        />
-      ) : (
-        <img
-          src={previewUrl}
-          alt="Preview"
-          className="w-full h-full object-contain"
-        />
+            {previewUrl.endsWith(".pdf") ? (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full border-0"
+                title="PDF Preview"
+                allow="fullscreen"
+                sandbox="allow-same-origin allow-scripts allow-forms"
+              />
+            ) : (
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full h-full object-contain"
+              />
+            )}
+          </div>
+        </div>
       )}
-    </div>
-  </div>
-)}
-
-
     </div>
   );
 }

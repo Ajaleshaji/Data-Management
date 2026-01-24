@@ -1,4 +1,3 @@
-// routes/studentFiles.js
 import express from "express";
 import upload from "../middleware/upload.js";
 import StudentFile from "../models/StudentFile.js";
@@ -19,16 +18,19 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
       {
         folder: `students/${rollNumber}`,
-        resource_type: "auto",   // 🔥 auto-detect PDF/image
+        resource_type: "auto",
         use_filename: true,
         unique_filename: false,
+
+        // 🔥 FORCE INLINE PREVIEW
+        flags: "attachment:false",
       }
     );
 
     const newFile = new StudentFile({
       rollNumber,
       fileName: req.file.originalname,
-      fileUrl: result.secure_url,  // 🔥 REAL PUBLIC PREVIEW URL
+      fileUrl: result.secure_url,   // 🔥 DO NOT MODIFY
       publicId: result.public_id,
       fileType: req.file.mimetype,
     });
@@ -43,11 +45,15 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
 // ✅ Fetch files
 router.get("/:rollNumber", async (req, res) => {
-  const files = await StudentFile.find({
-    rollNumber: req.params.rollNumber,
-  }).sort({ uploadedAt: -1 });
+  try {
+    const files = await StudentFile.find({
+      rollNumber: req.params.rollNumber,
+    }).sort({ uploadedAt: -1 });
 
-  res.json(files);
+    res.json(files);
+  } catch (err) {
+    res.status(500).json({ msg: "Fetch failed" });
+  }
 });
 
 // ✅ Delete file
