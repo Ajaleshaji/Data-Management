@@ -27,9 +27,10 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     const newFile = new StudentFile({
       rollNumber,
       fileName: req.file.originalname,
-      fileUrl: result.secure_url,   // 🔥 DO NOT MODIFY
+      fileUrl: result.secure_url,
       publicId: result.public_id,
       fileType: req.file.mimetype,
+      resourceType: result.resource_type, // Save actual resource type from Cloudinary
     });
 
     await newFile.save();
@@ -47,16 +48,20 @@ router.get("/:rollNumber", async (req, res) => {
       rollNumber: req.params.rollNumber,
     })
       .sort({ uploadedAt: -1 })
-      .lean(); // Use lean() to get plain objects we can modify
+      .lean();
 
     // Generate signed preview URLs
     const filesWithPreview = files.map((file) => {
       try {
         const isPdf = file.fileType === "application/pdf";
+        // Use saved resourceType if available, otherwise default to 'image' for PDFs/Images
+        // If file was uploaded as 'raw', we must use 'raw' here or it won't be found.
+        const resourceType = file.resourceType || "image";
+
         const previewUrl = cloudinary.url(file.publicId, {
           secure: true,
-          resource_type: "image",
-          format: isPdf ? "pdf" : undefined,
+          resource_type: resourceType,
+          format: (isPdf && resourceType === "image") ? "pdf" : undefined,
           sign_url: true,
         });
         return { ...file, previewUrl };
@@ -80,7 +85,7 @@ router.delete("/delete/:id", async (req, res) => {
     if (!file) return res.status(404).json({ msg: "File not found" });
 
     await cloudinary.uploader.destroy(file.publicId, {
-      resource_type: "auto",
+      resource_type: file.resourceType || "auto",
     });
 
     await StudentFile.findByIdAndDelete(req.params.id);
