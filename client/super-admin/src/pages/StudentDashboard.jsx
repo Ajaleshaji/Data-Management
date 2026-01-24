@@ -225,7 +225,7 @@ function StudentDashboard() {
       </div>
 
       {/* 🔥 PREVIEW POPUP MODAL */}
-      {previewUrl && (
+     {previewUrl && (
   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
     <div className="bg-white w-[90%] h-[90%] rounded-xl shadow-xl relative overflow-hidden">
       <div className="flex justify-between items-center px-4 py-2 border-b bg-gray-50">
@@ -238,14 +238,24 @@ function StudentDashboard() {
         </button>
       </div>
 
-      <iframe
-        src={previewUrl}
-        title="File Preview"
-        className="w-full h-full border-0"
-      />
+      {/* 🔥 PDF + Image Auto Preview */}
+      {previewUrl.endsWith(".pdf") ? (
+        <iframe
+          src={previewUrl}
+          className="w-full h-full border-0"
+          title="PDF Preview"
+        />
+      ) : (
+        <img
+          src={previewUrl}
+          alt="Preview"
+          className="w-full h-full object-contain"
+        />
+      )}
     </div>
   </div>
 )}
+
 
     </div>
   );

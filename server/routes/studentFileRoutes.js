@@ -1,13 +1,12 @@
+// routes/studentFiles.js
 import express from "express";
-import multer from "multer";
+import upload from "../middleware/upload.js";
 import StudentFile from "../models/StudentFile.js";
 import cloudinary from "../config/cloudinary.js";
 
 const router = express.Router();
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
 
-// Upload file
+// ✅ Upload file
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const { rollNumber } = req.body;
@@ -20,8 +19,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
       {
         folder: `students/${rollNumber}`,
-        resource_type: "auto",   // ✅ let Cloudinary detect PDF/image
-        disposition: "inline",  // ✅ PREVENT DOWNLOAD
+        resource_type: "auto",   // 🔥 auto-detect PDF/image
         use_filename: true,
         unique_filename: false,
       }
@@ -30,7 +28,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     const newFile = new StudentFile({
       rollNumber,
       fileName: req.file.originalname,
-      fileUrl: result.secure_url,  // ✅ DO NOT MODIFY URL
+      fileUrl: result.secure_url,  // 🔥 REAL PUBLIC PREVIEW URL
       publicId: result.public_id,
       fileType: req.file.mimetype,
     });
@@ -43,27 +41,24 @@ router.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
-
-
-// Fetch files
+// ✅ Fetch files
 router.get("/:rollNumber", async (req, res) => {
-  const files = await StudentFile.find({ rollNumber: req.params.rollNumber }).sort({ uploadedAt: -1 });
+  const files = await StudentFile.find({
+    rollNumber: req.params.rollNumber,
+  }).sort({ uploadedAt: -1 });
+
   res.json(files);
 });
 
-// Delete file
+// ✅ Delete file
 router.delete("/delete/:id", async (req, res) => {
   try {
     const file = await StudentFile.findById(req.params.id);
-    if (!file) {
-      return res.status(404).json({ msg: "File not found" });
-    }
+    if (!file) return res.status(404).json({ msg: "File not found" });
 
-    if (file.publicId) {
-      await cloudinary.uploader.destroy(file.publicId, {
-        resource_type: "auto",   // ✅ matches upload type
-      });
-    }
+    await cloudinary.uploader.destroy(file.publicId, {
+      resource_type: "auto",
+    });
 
     await StudentFile.findByIdAndDelete(req.params.id);
     res.json({ msg: "File deleted successfully" });
@@ -72,6 +67,5 @@ router.delete("/delete/:id", async (req, res) => {
     res.status(500).json({ msg: "Delete failed", error: err.message });
   }
 });
-
 
 export default router;
