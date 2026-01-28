@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BACKEND_URL from "../config/api";
 
@@ -10,8 +10,6 @@ function StudentDashboard() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
-
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchFiles();
@@ -47,7 +45,7 @@ function StudentDashboard() {
       if (!res.ok) throw new Error("Upload failed");
 
       setFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      document.getElementById("file-upload").value = "";
       fetchFiles();
     } catch (err) {
       alert("File upload failed");
@@ -68,68 +66,122 @@ function StudentDashboard() {
     }
   };
 
-  // ✅ SAME AS FIRST CODE
+  // 🔥 EXACT SAME AS FIRST CODE
   const openPreview = (url) => {
     if (!url) return;
     setPreviewUrl(url);
   };
 
-  const getFileExtension = (name) =>
-    name.split(".").pop().toUpperCase().substring(0, 3);
-
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      {/* HEADER */}
-      <nav className="bg-[#0D9488] text-white shadow-lg sticky top-0 z-50">
+      <nav className="bg-[#0D9488] text-white shadow-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
-          <button onClick={() => navigate(-1)}>←</button>
-          <span className="font-bold">{rollNumber}</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="hover:bg-white/10 p-2 rounded-full transition-colors"
+            >
+              ←
+            </button>
+            <h1 className="text-lg font-bold tracking-tight text-white">
+              Student Documents
+            </h1>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase opacity-70 font-bold tracking-widest">
+              Student Profile
+            </p>
+            <p className="text-sm font-medium">{rollNumber}</p>
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* UPLOAD */}
-        <div className="lg:col-span-4 bg-white p-6 rounded-xl shadow">
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={(e) => setFile(e.target.files[0])}
-          />
-          <button
-            onClick={uploadFile}
-            disabled={loading}
-            className="mt-4 w-full bg-[#0D9488] text-white py-2 rounded"
-          >
-            {loading ? "Uploading..." : "Upload"}
-          </button>
-        </div>
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* UPLOAD */}
+          <div className="lg:col-span-4">
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 sticky top-24">
+              <h2 className="text-lg font-bold text-gray-800 mb-2">
+                Upload Files
+              </h2>
+              <p className="text-xs text-gray-500 mb-6 leading-relaxed">
+                Upload assignments, IDs, or certificates. Supports PDF, JPG, PNG.
+              </p>
 
-        {/* FILE LIST */}
-        <div className="lg:col-span-8 bg-white rounded-xl shadow">
-          {files.map((f) => (
-            <div
-              key={f._id}
-              className="flex justify-between items-center p-4 border-b"
-            >
-              <button
-                onClick={() => openPreview(f.previewUrl || f.fileUrl)}
-                className="text-left font-bold text-gray-700 hover:text-[#0D9488]"
-              >
-                {getFileExtension(f.fileName)} - {f.fileName}
-              </button>
+              <div className="space-y-4">
+                <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-6 hover:border-[#0D9488] transition-colors bg-gray-50 group">
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept="application/pdf,image/*"
+                    onChange={(e) => setFile(e.target.files[0])}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="text-center">
+                    <p className="text-2xl mb-2">📁</p>
+                    <p className="text-sm font-medium text-gray-600 group-hover:text-[#0D9488]">
+                      {file ? file.name : "Click to browse or drag file"}
+                    </p>
+                  </div>
+                </div>
 
-              <button
-                onClick={() => deleteFile(f._id)}
-                className="text-red-500"
-              >
-                Delete
-              </button>
+                <button
+                  onClick={uploadFile}
+                  disabled={loading || !file}
+                  className="w-full py-3 bg-[#0D9488] hover:bg-[#0b7a6f] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
+                >
+                  {loading ? "Uploading..." : "Submit File"}
+                </button>
+              </div>
             </div>
-          ))}
+          </div>
+
+          {/* FILE LIST */}
+          <div className="lg:col-span-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 className="font-bold text-gray-800 tracking-tight">
+                  Recent Uploads
+                </h3>
+                <span className="text-xs font-bold bg-[#0D9488]/10 text-[#0D9488] px-3 py-1 rounded-full">
+                  {files.length} Files
+                </span>
+              </div>
+
+              <div className="divide-y divide-gray-100">
+                {files.length === 0 ? (
+                  <div className="px-6 py-20 text-center">
+                    No files uploaded yet.
+                  </div>
+                ) : (
+                  files.map((f) => (
+                    <div
+                      key={f._id}
+                      className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
+                    >
+                      <button
+                        onClick={() => openPreview(f.previewUrl)}
+                        className="font-bold text-gray-700 hover:text-[#0D9488]"
+                      >
+                        {f.fileName}
+                      </button>
+
+                      <button
+                        onClick={() => deleteFile(f._id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ✅ PREVIEW MODAL — EXACTLY LIKE FIRST CODE */}
+      {/* 🔥 PREVIEW — IDENTICAL TO FIRST CODE */}
       {previewUrl && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white w-[90%] h-[90%] rounded-xl shadow-xl relative overflow-hidden">
@@ -137,7 +189,7 @@ function StudentDashboard() {
               <h3 className="text-sm font-bold text-gray-700">File Preview</h3>
               <button
                 onClick={() => setPreviewUrl(null)}
-                className="text-red-500 font-bold text-lg"
+                className="text-red-500 font-bold text-lg hover:bg-red-50 px-3 rounded"
               >
                 ✕
               </button>
