@@ -2,6 +2,7 @@ import express from "express";
 import upload from "../middleware/multer.js";
 import StudentFile from "../models/StudentFile.js";
 import cloudinary from "../config/cloudinary.js";
+import { convertPdfBufferToImage } from "../utils/pdfToImage.js";
 
 const router = express.Router();
 
@@ -9,16 +10,30 @@ const router = express.Router();
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const { rollNumber } = req.body;
+    const file = req.file;
 
-    if (!req.file || !rollNumber) {
+    if (!file || !rollNumber) {
       return res.status(400).json({ msg: "File or roll number missing" });
     }
 
+    let uploadBuffer = file.buffer;
+    let uploadMime = file.mimetype;
+    let fileType = file.mimetype;
+    let wasConverted = false;
+
+    // 🔥 Convert PDF to Image
+    if (file.mimetype === "application/pdf") {
+      uploadBuffer = await convertPdfBufferToImage(file.buffer);
+      uploadMime = "image/png";
+      fileType = "image/png";
+      wasConverted = true;
+    }
+
     const result = await cloudinary.uploader.upload(
-      `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+      `data:${uploadMime};base64,${uploadBuffer.toString("base64")}`,
       {
         folder: `students/${rollNumber}`,
-        resource_type: "auto",
+        resource_type: "image",
         use_filename: true,
         unique_filename: false,
       }
@@ -26,11 +41,13 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
     const newFile = new StudentFile({
       rollNumber,
-      fileName: req.file.originalname,
+      fileName: wasConverted
+        ? file.originalname.replace(/\.pdf$/i, ".png")
+        : file.originalname,
       fileUrl: result.secure_url,
       publicId: result.public_id,
-      fileType: req.file.mimetype,
-      resourceType: result.resource_type, // Save actual resource type from Cloudinary
+      fileType,
+      resourceType: "image",
     });
 
     await newFile.save();
@@ -50,26 +67,10 @@ router.get("/:rollNumber", async (req, res) => {
       .sort({ uploadedAt: -1 })
       .lean();
 
-    // Generate signed preview URLs
-    const filesWithPreview = files.map((file) => {
-      try {
-        const isPdf = file.fileType === "application/pdf";
-        // Use saved resourceType if available, otherwise default to 'image' for PDFs/Images
-        // If file was uploaded as 'raw', we must use 'raw' here or it won't be found.
-        const resourceType = file.resourceType || "image";
-
-        const previewUrl = cloudinary.url(file.publicId, {
-          secure: true,
-          resource_type: resourceType,
-          format: isPdf ? "pdf" : undefined,
-          sign_url: true,
-        });
-        return { ...file, previewUrl };
-      } catch (error) {
-        console.error("URL Generation Error:", error);
-        return { ...file, previewUrl: file.fileUrl };
-      }
-    });
+    const filesWithPreview = files.map((file) => ({
+      ...file,
+      previewUrl: file.fileUrl,
+    }));
 
     res.json(filesWithPreview);
   } catch (err) {
@@ -85,7 +86,7 @@ router.delete("/delete/:id", async (req, res) => {
     if (!file) return res.status(404).json({ msg: "File not found" });
 
     await cloudinary.uploader.destroy(file.publicId, {
-      resource_type: file.resourceType || "image",
+      resource_type: "image",
     });
 
     await StudentFile.findByIdAndDelete(req.params.id);

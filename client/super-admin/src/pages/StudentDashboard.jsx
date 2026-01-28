@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
 import BACKEND_URL from "../config/api";
 
 function StudentDashboard() {
@@ -10,7 +9,6 @@ function StudentDashboard() {
   const [file, setFile] = useState(null);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
@@ -38,7 +36,7 @@ function StudentDashboard() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("rollNumber", rollNumber);
-    formData.append("upload_preset", "Certificates");
+
     try {
       setLoading(true);
       const res = await fetch(
@@ -74,7 +72,6 @@ function StudentDashboard() {
     }
   };
 
-  // 🔥 FORCE INLINE PREVIEW URL
   const openPreview = (url) => {
     if (!url) return;
     setPreviewUrl(url);
@@ -120,6 +117,7 @@ function StudentDashboard() {
                   <input
                     id="file-upload"
                     type="file"
+                    accept="application/pdf,image/*"
                     onChange={(e) => setFile(e.target.files[0])}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
@@ -165,7 +163,7 @@ function StudentDashboard() {
                       className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
                     >
                       <button
-                        onClick={() => openPreview(f.previewUrl || f.fileUrl)}
+                        onClick={() => openPreview(f.previewUrl)}
                         className="font-bold text-gray-700 hover:text-[#0D9488]"
                       >
                         {f.fileName}
@@ -199,21 +197,11 @@ function StudentDashboard() {
               </button>
             </div>
 
-            {previewUrl.includes(".pdf") ? (
-              <iframe
-                src={previewUrl}
-                className="w-full h-full border-0"
-                title="PDF Preview"
-                allow="fullscreen"
-                sandbox="allow-same-origin allow-scripts allow-forms allow-downloads allow-popups"
-              />
-            ) : (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full h-full object-contain"
-              />
-            )}
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
       )}
