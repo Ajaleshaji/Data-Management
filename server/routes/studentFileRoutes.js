@@ -16,24 +16,12 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       return res.status(400).json({ msg: "File or roll number missing" });
     }
 
-    let uploadBuffer = file.buffer;
-    let uploadMime = file.mimetype;
-    let fileType = file.mimetype;
-    let wasConverted = false;
-
-    // 🔥 Convert PDF to Image
-    if (file.mimetype === "application/pdf") {
-      uploadBuffer = await convertPdfBufferToImage(file.buffer);
-      uploadMime = "image/png";
-      fileType = "image/png";
-      wasConverted = true;
-    }
-
+    // 👇 IMPORTANT: use auto
     const result = await cloudinary.uploader.upload(
-      `data:${uploadMime};base64,${uploadBuffer.toString("base64")}`,
+      `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
       {
         folder: `students/${rollNumber}`,
-        resource_type: "image",
+        resource_type: "auto", // 👈 VERY IMPORTANT
         use_filename: true,
         unique_filename: false,
       }
@@ -41,13 +29,11 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 
     const newFile = new StudentFile({
       rollNumber,
-      fileName: wasConverted
-        ? file.originalname.replace(/\.pdf$/i, ".png")
-        : file.originalname,
+      fileName: file.originalname,
       fileUrl: result.secure_url,
       publicId: result.public_id,
-      fileType,
-      resourceType: "image",
+      fileType: file.mimetype,
+      resourceType: result.resource_type, // raw or image
     });
 
     await newFile.save();
@@ -58,6 +44,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
   }
 });
 
+
 // ✅ Fetch files
 router.get("/:rollNumber", async (req, res) => {
   try {
@@ -67,10 +54,23 @@ router.get("/:rollNumber", async (req, res) => {
       .sort({ uploadedAt: -1 })
       .lean();
 
-    const filesWithPreview = files.map((file) => ({
-      ...file,
-      previewUrl: file.fileUrl,
-    }));
+    const filesWithPreview = files.map((file) => {
+      let previewUrl = file.fileUrl;
+
+      // 🔥 Cloudinary PDF → IMAGE preview
+      if (file.fileType === "application/pdf") {
+        previewUrl = cloudinary.url(file.publicId, {
+          resource_type: "image",
+          format: "png",
+          page: 1,
+          width: 800,
+          crop: "scale",
+          secure: true,
+        });
+      }
+
+      return { ...file, previewUrl };
+    });
 
     res.json(filesWithPreview);
   } catch (err) {
@@ -78,6 +78,7 @@ router.get("/:rollNumber", async (req, res) => {
     res.status(500).json({ msg: "Fetch failed" });
   }
 });
+
 
 // ✅ Delete file
 router.delete("/delete/:id", async (req, res) => {
