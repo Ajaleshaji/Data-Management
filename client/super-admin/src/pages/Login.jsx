@@ -96,6 +96,11 @@ function Login() {
             </button>
           </div>
         </form>
+              <div className="text-center mt-2">
+  <p className="text-xs text-gray-400 uppercase tracking-widest">
+    Credentials Hint — ID: superadmin • Password: superpass123
+  </p>
+</div>
 
         <div className="text-center">
           <p className="text-xs text-gray-400 uppercase tracking-widest">
